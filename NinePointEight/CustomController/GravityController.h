@@ -14,7 +14,12 @@ class NINEPOINTEIGHT_API AGravityController : public APlayerController
 {
 	GENERATED_BODY()
 
+
+
+
 public:
+	virtual void BeginPlay() override;
+
 	virtual void UpdateRotation(float DeltaTime) override;
 
 	// Converts a rotation from world space to gravity relative space.

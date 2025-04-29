@@ -3,6 +3,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NinePointEight/NinePointEightCharacter.h"
 
+void AGravityController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	/*FRotator startingRotation(-15,0,0);
+	SetControlRotation(startingRotation);*/
+}
+
 void AGravityController::UpdateRotation(float DeltaTime)
 {
 	FVector GravityDirection = FVector::DownVector;
@@ -65,7 +73,7 @@ void AGravityController::UpdateRotation(float DeltaTime)
 				rotationSpeed);
 			SetControlRotation(newControlRotation);
 
-			if (GetControlRotation().Equals(targetRotation)) {
+			if (GetControlRotation().Equals(ogRotation,0.1)) {
 				bIsCameraShifting = false;
 				if (getOwnerCharacter()) getOwnerCharacter()->bIsCameraShifting = false;
 				//bodyDouble->bIsCameraShifting = false;
@@ -79,8 +87,8 @@ void AGravityController::UpdateRotation(float DeltaTime)
 			GetControlRotation().Pitch, GetControlRotation().Yaw, GetControlRotation().Roll);
 
 		UE_LOG(LogTemp, Warning, TEXT("Target Rotation  - Pitch: %f, Yaw: %f, Roll: %f"),
-			targetRotation.Pitch, targetRotation.Yaw, targetRotation.Roll);
-		*/
+			targetRotation.Pitch, targetRotation.Yaw, targetRotation.Roll);*/
+		
 
 	}
 

@@ -13,6 +13,8 @@
 #include "CustomController/GravityController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TimelineComponent.h"
+#include "GameManagers/NPEGameInstance.h"
+#include "GameManagers/NPESaveGame.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -66,6 +68,9 @@ void ANinePointEightCharacter::BeginPlay()
 	Super::BeginPlay();
 	lookForBodyDouble();
 
+	//Game Instance
+	npeGameInsRef = Cast<UNPEGameInstance>(GetWorld()->GetGameInstance());
+
 
 	//BindTimeline
 	if (zoomFloatCurve) {
@@ -74,6 +79,18 @@ void ANinePointEightCharacter::BeginPlay()
 		zoomTimeline->AddInterpFloat(zoomFloatCurve, UpdateFunction);
 
 	}
+
+
+	if (GetController()) {
+		FRotator startingRotation(-15, 0, 0);
+		GetController()->SetControlRotation(startingRotation);
+	}
+	
+
+	//Bug
+	//UE_LOG(LogTemp, Warning, TEXT("Game Instance curLevel: %d"), npeGameInsRef->curLevel);
+	//UE_LOG(LogTemp, Warning, TEXT("Game Save curLevel: %d"), npeGameInsRef->NPESaveGame->curLevel);
+
 }
 
 
@@ -253,6 +270,17 @@ void ANinePointEightCharacter::lookForBodyDouble()
 		}
 	}
 }
+
+void ANinePointEightCharacter::setGForce(float newG)
+{
+	GetCharacterMovement()->GravityScale = newG;
+
+	if (bodyDouble) {
+		bodyDouble->setGForce(newG);
+	}
+}
+
+
 
 void ANinePointEightCharacter::setIsCameraShifting(bool isShifting)
 {

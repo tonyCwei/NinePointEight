@@ -128,6 +128,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void lookForBodyDouble();
 
+	UFUNCTION(BlueprintCallable)
+	void setGForce(float newG);
+
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -149,6 +152,10 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	ANinePointEightCharacter* bodyDouble;
+
+protected:
+
+	class UNPEGameInstance* npeGameInsRef;
 
 };
 
