@@ -7,6 +7,7 @@
 #include "NinePointEight/NinePointEightCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NinePointEight/GameManagers/NPEGameInstance.h"
+#include "Sound/SoundCue.h"
 
 AExitPlatform::AExitPlatform()
 {
@@ -62,6 +63,12 @@ void AExitPlatform::activatePlatform()
 	if (UNPEGameInstance* npeGameInsRef = Cast<UNPEGameInstance>(GetWorld()->GetGameInstance())) {
 		npeGameInsRef->activatePlatform();
 		isActivated = true;
+
+
+		if (activatedCue)
+		{
+			UGameplayStatics::PlaySound2D(this, activatedCue);
+		}
 	}
 }
 

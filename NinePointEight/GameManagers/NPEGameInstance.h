@@ -57,8 +57,8 @@ public:
 										FLevelInfo{TEXT("Level3"), TEXT("Venus"), 0.907f, 8.9f, 2},
 										FLevelInfo{TEXT("Level4"), TEXT("Mars"), 0.377f, 3.7f, 2},
 										FLevelInfo{TEXT("Level5"), TEXT("Jupiter"), 2.36f, 23.1f, 1},
-										FLevelInfo{TEXT("Level6"), TEXT("Saturn"), 0.916f, 9.0f, 1},
-										FLevelInfo{TEXT("Level7"), TEXT("Uranus"), 0.889f, 8.7f, 1},
+										FLevelInfo{TEXT("Level6"), TEXT("Saturn"), 0.916f, 9.0f, 2},
+										FLevelInfo{TEXT("Level7"), TEXT("Uranus"), 0.889f, 8.7f, 2},
 										FLevelInfo{TEXT("Level8"), TEXT("Neptune"), 1.12f, 11.0f, 1},
 										FLevelInfo{TEXT("Level9"), TEXT("Moon"), 0.166f, 1.6f, 2}
 
@@ -70,9 +70,18 @@ public:
 	FLevelInfo getLevelInfo(int32 levelIndex) { return LevelInfos[levelIndex]; }
 
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 restartTimes = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShouldDisplayTip = true;
+
 protected:
 
 	int32 activatedPlatforms = 0;
+
+	UClass* LevelEndWidgetClass;
 
 public:
 	void activatePlatform();
@@ -88,4 +97,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RestartLevel();
+
+//UserSettings
+public:
+	UFUNCTION(BlueprintCallable)
+	void applyUserSettings();
+
+
+protected:
+	void SetOverallScalabilityLevel(int32 Level);
 };

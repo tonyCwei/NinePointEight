@@ -5,25 +5,30 @@
 #include "Kismet/GameplayStatics.h"
 #include "NPESaveGame.h"
 #include "Blueprint/UserWidget.h"
+#include "Scalability.h"
 
 UNPEGameInstance::UNPEGameInstance()
 {
     NPESaveGame = Cast<UNPESaveGame>(UGameplayStatics::LoadGameFromSlot("SavingsSlot", 0));
     if (!NPESaveGame)
     {
-       // UE_LOG(LogTemp, Warning, TEXT("CreatingSave"));
-        NPESaveGame = Cast<UNPESaveGame>(UGameplayStatics::CreateSaveGameObject(UNPESaveGame::StaticClass()));
+         NPESaveGame = Cast<UNPESaveGame>(UGameplayStatics::CreateSaveGameObject(UNPESaveGame::StaticClass()));
         if (NPESaveGame) {
             UGameplayStatics::SaveGameToSlot(NPESaveGame, "SavingsSlot", 0);          
         }
 
         
     }
+   
+
+    static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/Blueprint/Widget/WBP_LevelEnd"));
+    if (WidgetClassFinder.Succeeded())
+    {
+        LevelEndWidgetClass = WidgetClassFinder.Class;
+    }
 
 
-   /* if (NPESaveGame) {
-        curLevel = NPESaveGame->curLevel;
-    }*/
+    applyUserSettings();
 }
 
 void UNPEGameInstance::activatePlatform()
@@ -50,15 +55,14 @@ void UNPEGameInstance::LoadNextLevel()
         return;
     }
 
+
+
     if (LevelInfos.Num() == NPESaveGame->unlockedLevels.Num() && curLevel + 1 < LevelInfos.Num()) {
         curLevel++;
-        //NPESaveGame->curLevel = curLevel;
         NPESaveGame->unlockedLevels[curLevel] = true;
 
-        UClass* LevelEndWidgetClass = StaticLoadClass(UUserWidget::StaticClass(), nullptr, TEXT("/Game/Blueprint/Widget/WBP_LevelEnd.WBP_LevelEnd_C"));
 
-        if (LevelEndWidgetClass)
-        {
+        if (LevelEndWidgetClass){
             UUserWidget* LevelEndWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), LevelEndWidgetClass);
             if (LevelEndWidgetInstance)
             {
@@ -70,9 +74,6 @@ void UNPEGameInstance::LoadNextLevel()
         }
 
         
-        //UGameplayStatics::OpenLevel(this, FName(TEXT("TransitionLevel")));
-
-
         /*UE_LOG(LogTemp, Warning, TEXT("Next Level Name: %s, Planet: %s, Gravity Force: %.2f, Gravity Acceleration: %.2f"),
             *LevelInfos[curLevel].levelName.ToString(), *LevelInfos[curLevel].planetName, LevelInfos[curLevel].gForce, LevelInfos[curLevel].gAcce);
 
@@ -88,17 +89,39 @@ void UNPEGameInstance::LoadNextLevel()
     
     }
 
-    
+    restartTimes = 0;
 }
 
 void UNPEGameInstance::RestartLevel()
 {
     if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 1))
     {
-        UGameplayStatics::RemovePlayer(PlayerController, false);
+        UGameplayStatics::RemovePlayer(PlayerController, true);
     }
 
     UGameplayStatics::OpenLevel(GetWorld(), LevelInfos[curLevel].levelName);
 
+    restartTimes++;
 
+    
+}
+
+void UNPEGameInstance::applyUserSettings()
+{
+    if (NPESaveGame) {
+        SetOverallScalabilityLevel(NPESaveGame->ScalabilityLevel);
+    }
+    else {
+        SetOverallScalabilityLevel(2);
+    }
+}
+
+void UNPEGameInstance::SetOverallScalabilityLevel(int32 Level)
+{
+    Level = FMath::Clamp(Level, 0, 3);
+
+    Scalability::FQualityLevels QualityLevels;
+    QualityLevels.SetFromSingleQualityLevel(Level);
+
+    Scalability::SetQualityLevels(QualityLevels);
 }

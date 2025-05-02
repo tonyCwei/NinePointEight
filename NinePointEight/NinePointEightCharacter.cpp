@@ -87,6 +87,9 @@ void ANinePointEightCharacter::BeginPlay()
 	}
 	
 
+	setGForce(npeGameInsRef->LevelInfos[npeGameInsRef->curLevel].gForce);
+	UE_LOG(LogTemp, Warning, TEXT("Game Instance curLevel: %d"), npeGameInsRef->curLevel);
+	UE_LOG(LogTemp, Warning, TEXT("Gravity: %f"), npeGameInsRef->LevelInfos[npeGameInsRef->curLevel].gForce);
 	//Bug
 	//UE_LOG(LogTemp, Warning, TEXT("Game Instance curLevel: %d"), npeGameInsRef->curLevel);
 	//UE_LOG(LogTemp, Warning, TEXT("Game Save curLevel: %d"), npeGameInsRef->NPESaveGame->curLevel);

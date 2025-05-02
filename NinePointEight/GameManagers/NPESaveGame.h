@@ -29,5 +29,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 getunlockedLevelsSize() { return unlockedLevels.Num(); }
+
+
+//User Settings
+public:
+
+	int32 ScalabilityLevel = 2;
 	
 };
