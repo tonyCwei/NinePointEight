@@ -21,19 +21,24 @@ public:
 
 public:
 
-	//int32 curLevel = 0;
-
 	int totalLevels = 10;
 
+	UPROPERTY()//Must Mark as UPROPERTY(), otherwise SaveGameToSlot() won't save this data
 	TArray<bool>unlockedLevels;
 
 	UFUNCTION(BlueprintCallable)
 	int32 getunlockedLevelsSize() { return unlockedLevels.Num(); }
 
+	UFUNCTION(BlueprintCallable)
+	void unlockLevel(int32 levelIndex) { if (levelIndex < unlockedLevels.Num()) unlockedLevels[levelIndex] = true; }
+
+	UFUNCTION(BlueprintCallable)
+	bool getUnlockedLevels(int32 levelIndex) { return (levelIndex < unlockedLevels.Num()) ? unlockedLevels[levelIndex] : false; }
+
 
 //User Settings
 public:
 
-	int32 ScalabilityLevel = 2;
+	int32 ScalabilityLevel = 3;
 	
 };

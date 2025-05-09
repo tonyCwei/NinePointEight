@@ -6,29 +6,76 @@
 #include "NPESaveGame.h"
 #include "Blueprint/UserWidget.h"
 #include "Scalability.h"
+#include "Components/AudioComponent.h"
 
 UNPEGameInstance::UNPEGameInstance()
 {
     NPESaveGame = Cast<UNPESaveGame>(UGameplayStatics::LoadGameFromSlot("SavingsSlot", 0));
     if (!NPESaveGame)
     {
-         NPESaveGame = Cast<UNPESaveGame>(UGameplayStatics::CreateSaveGameObject(UNPESaveGame::StaticClass()));
+
+
+
+        NPESaveGame = Cast<UNPESaveGame>(UGameplayStatics::CreateSaveGameObject(UNPESaveGame::StaticClass()));
         if (NPESaveGame) {
-            UGameplayStatics::SaveGameToSlot(NPESaveGame, "SavingsSlot", 0);          
+            UGameplayStatics::SaveGameToSlot(NPESaveGame, "SavingsSlot", 0);
         }
 
-        
-    }
-   
 
-    static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/Blueprint/Widget/WBP_LevelEnd"));
-    if (WidgetClassFinder.Succeeded())
+    }
+
+
+    //unlock all levels
+   /* for (int i = 0; i < 10; i++) {
+        NPESaveGame->unlockLevel(i);
+    }
+    */
+
+
+
+    static ConstructorHelpers::FClassFinder<UUserWidget> LevelEndWidgetClassFinder(TEXT("/Game/Blueprint/Widget/WBP_LevelEnd"));
+    if (LevelEndWidgetClassFinder.Succeeded())
     {
-        LevelEndWidgetClass = WidgetClassFinder.Class;
+        LevelEndWidgetClass = LevelEndWidgetClassFinder.Class;
     }
 
+    static ConstructorHelpers::FClassFinder<UUserWidget> MoonLevelEndWidgetClassFinder(TEXT("/Game/Blueprint/Widget/WBP_MoonLevelEnd"));
+    if (MoonLevelEndWidgetClassFinder.Succeeded())
+    {
+        MoonLevelEndWidgetClass = MoonLevelEndWidgetClassFinder.Class;
+    }
+
+    /*BGMAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("BGMAudioComponent"));
+    BGMAudioComponent->bAutoActivate = false;
+    BGMAudioComponent->RegisterComponent();*/
+}
+
+void UNPEGameInstance::Init()
+{
+    Super::Init();
 
     applyUserSettings();
+}
+
+UNPESaveGame* UNPEGameInstance::getSaveGame()
+{
+    return NPESaveGame;
+}
+
+bool UNPEGameInstance::getIsLevelUnlocked(int32 levelIndex)
+{
+    
+    if (NPESaveGame && levelIndex < NPESaveGame->getunlockedLevelsSize()) {
+        return NPESaveGame->unlockedLevels[levelIndex];
+    }
+ 
+    return false;
+}
+
+void UNPEGameInstance::unlockLevel(int32 levelIndex)
+{
+    NPESaveGame->unlockLevel(levelIndex);
+    UGameplayStatics::SaveGameToSlot(NPESaveGame, "SavingsSlot", 0);
 }
 
 void UNPEGameInstance::activatePlatform()
@@ -56,17 +103,17 @@ void UNPEGameInstance::LoadNextLevel()
     }
 
 
+    
 
     if (LevelInfos.Num() == NPESaveGame->unlockedLevels.Num() && curLevel + 1 < LevelInfos.Num()) {
         curLevel++;
-        NPESaveGame->unlockedLevels[curLevel] = true;
-
+        unlockLevel(curLevel);
 
         if (LevelEndWidgetClass){
             UUserWidget* LevelEndWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), LevelEndWidgetClass);
             if (LevelEndWidgetInstance)
             {
-                LevelEndWidgetInstance->AddToViewport();
+                LevelEndWidgetInstance->AddToViewport(2);
             }
         }
         else {
@@ -84,8 +131,18 @@ void UNPEGameInstance::LoadNextLevel()
         }*/
 
     }
-    else { //Finish Last Level
-        UE_LOG(LogTemp, Display, TEXT("Load GameOver"));
+    else if (curLevel == 9){ //Finish Last Level
+        if (MoonLevelEndWidgetClass) {
+            UUserWidget* MoonLevelEndWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MoonLevelEndWidgetClass);
+            if (MoonLevelEndWidgetInstance)
+            {
+                curLevel++;
+                MoonLevelEndWidgetInstance->AddToViewport(2);
+            }
+        }
+        else {
+            UE_LOG(LogTemp, Warning, TEXT("Failed to load WBP_LevelEnd widget!"));
+        }
     
     }
 
@@ -98,6 +155,13 @@ void UNPEGameInstance::RestartLevel()
     {
         UGameplayStatics::RemovePlayer(PlayerController, true);
     }
+
+    if (UGameViewportClient* Viewport = GetWorld()->GetGameViewport())
+    {
+        Viewport->SetForceDisableSplitscreen(false);
+    }
+
+
 
     UGameplayStatics::OpenLevel(GetWorld(), LevelInfos[curLevel].levelName);
 
@@ -112,7 +176,7 @@ void UNPEGameInstance::applyUserSettings()
         SetOverallScalabilityLevel(NPESaveGame->ScalabilityLevel);
     }
     else {
-        SetOverallScalabilityLevel(2);
+        SetOverallScalabilityLevel(3);
     }
 }
 
@@ -124,4 +188,55 @@ void UNPEGameInstance::SetOverallScalabilityLevel(int32 Level)
     QualityLevels.SetFromSingleQualityLevel(Level);
 
     Scalability::SetQualityLevels(QualityLevels);
+}
+
+void UNPEGameInstance::PlayBGM(UAudioComponent* newAudioComponent, float FadeInDuration, float Volume)
+{
+    if (!newAudioComponent) return;
+    
+    if (!BGMAudioComponent) {
+        BGMAudioComponent = newAudioComponent;
+        BGMAudioComponent->FadeIn(FadeInDuration, Volume);
+    
+    }
+
+    if (BGMAudioComponent->GetSound() != newAudioComponent->GetSound()) { //Different BGM
+        StopBGM(FadeInDuration);
+        BGMAudioComponent = newAudioComponent;
+    }
+ 
+
+
+
+
+}
+
+void UNPEGameInstance::StopBGM(float FadeOutDuration)
+{
+    if (BGMAudioComponent && BGMAudioComponent->IsPlaying())
+    {
+        BGMAudioComponent->FadeOut(FadeOutDuration, 0.0f);
+    }
+    //CurrentBGM = nullptr;
+}
+
+void UNPEGameInstance::PauseBGM()
+{
+    if (BGMAudioComponent && BGMAudioComponent->IsPlaying())
+    {
+        BGMAudioComponent->SetPaused(true);
+    }
+}
+
+void UNPEGameInstance::ResumeBGM()
+{
+    if (BGMAudioComponent && BGMAudioComponent->bIsPaused)
+    {
+        BGMAudioComponent->SetPaused(false);
+    }
+}
+
+void UNPEGameInstance::setVolume(float newVolume)
+{
+    if (BGMAudioComponent) BGMAudioComponent->SetVolumeMultiplier(newVolume);
 }

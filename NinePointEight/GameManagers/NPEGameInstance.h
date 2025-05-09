@@ -40,11 +40,15 @@ class NINEPOINTEIGHT_API UNPEGameInstance : public UGameInstance
 public:
 	UNPEGameInstance();
 
-
+	virtual void Init() override;
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UNPESaveGame* NPESaveGame;
+
+	UFUNCTION(BlueprintCallable)
+	class UNPESaveGame* getSaveGame();
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 curLevel = 0;
@@ -58,8 +62,8 @@ public:
 										FLevelInfo{TEXT("Level4"), TEXT("Mars"), 0.377f, 3.7f, 2},
 										FLevelInfo{TEXT("Level5"), TEXT("Jupiter"), 2.36f, 23.1f, 1},
 										FLevelInfo{TEXT("Level6"), TEXT("Saturn"), 0.916f, 9.0f, 2},
-										FLevelInfo{TEXT("Level7"), TEXT("Uranus"), 0.889f, 8.7f, 2},
-										FLevelInfo{TEXT("Level8"), TEXT("Neptune"), 1.12f, 11.0f, 1},
+										FLevelInfo{TEXT("Level7"), TEXT("Uranus"), 0.889f, 8.7f, 1},
+										FLevelInfo{TEXT("Level8"), TEXT("Neptune"), 1.12f, 11.0f, 2},
 										FLevelInfo{TEXT("Level9"), TEXT("Moon"), 0.166f, 1.6f, 2}
 
 	};
@@ -68,6 +72,12 @@ public:
 //Utilities
 	UFUNCTION(BlueprintCallable)
 	FLevelInfo getLevelInfo(int32 levelIndex) { return LevelInfos[levelIndex]; }
+
+	UFUNCTION(BlueprintCallable)
+	bool getIsLevelUnlocked(int32 levelIndex);
+
+	UFUNCTION(BlueprintCallable)
+	void unlockLevel(int32 levelIndex);
 
 
 public:
@@ -83,6 +93,8 @@ protected:
 
 	UClass* LevelEndWidgetClass;
 
+	UClass* MoonLevelEndWidgetClass;
+
 public:
 	void activatePlatform();
 
@@ -91,7 +103,7 @@ public:
 
 //levels
 public:
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void LoadNextLevel();
 
 
@@ -106,4 +118,39 @@ public:
 
 protected:
 	void SetOverallScalabilityLevel(int32 Level);
+
+
+
+//Audio
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BGM")
+	class UAudioComponent* BGMAudioComponent;
+
+	//UPROPERTY(BlueprintReadOnly)
+	//USoundBase* CurrentBGM;
+
+
+
+
+public:
+
+
+	UFUNCTION(BlueprintCallable)
+	void PlayBGM(UAudioComponent* newAudioComponent, float FadeInDuration = 1.0f, float Volume = 1.0f);
+
+	UFUNCTION(BlueprintCallable)
+	void StopBGM(float FadeOutDuration = 1.0f);
+
+	UFUNCTION(BlueprintCallable)
+	void PauseBGM();
+
+	UFUNCTION(BlueprintCallable)
+	void ResumeBGM();
+
+	UFUNCTION(BlueprintCallable)
+	void setVolume(float newVolume);
+
+	UFUNCTION(BlueprintCallable)
+	UAudioComponent* getAudioComponent() { return BGMAudioComponent; };
 };

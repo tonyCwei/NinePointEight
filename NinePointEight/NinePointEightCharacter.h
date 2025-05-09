@@ -53,6 +53,9 @@ class ANinePointEightCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* BDCamLockAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* RestartAction;
+
 public:
 	ANinePointEightCharacter();
 	
@@ -88,20 +91,43 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zoom", meta = (AllowPrivateAccess = "true"))
 	float zoomTargetArmLength;
+
+	UFUNCTION(BlueprintPure)
+	float getCamArmLength();
+
+
+	UFUNCTION(BlueprintCallable)
+	void setCamArmLength(float newArmLength);
 	
 	
-	//Cam Lock
-	UFUNCTION()
-	void lockSelfCam() { bIsSelfCameraLocked = true; }
+	//Cam Work
+	UFUNCTION(BlueprintCallable)
+	void lockSelfCam() { if (bCanUnlockCamera) bIsSelfCameraLocked = true; }
+
+	UFUNCTION(BlueprintCallable)
+	void unlockSelfCam() { if (bCanUnlockCamera) bIsSelfCameraLocked = false; }
+
+	UFUNCTION(BlueprintCallable)
+	void lockBDCam() { if (bCanUnlockCamera) bIsBodyDoubleCameraLocked = true; }
+
+	UFUNCTION(BlueprintCallable)
+	void unlockBDCam() { if (bCanUnlockCamera) bIsBodyDoubleCameraLocked = false; }
+
+	UFUNCTION(BlueprintCallable)
+	void disableSplitScreen();
+
+	bool bCanUnlockCamera = true;
+
+	UFUNCTION(BlueprintCallable)
+	void setCanLockCamera(bool bCanUnlockCamera_) { bCanUnlockCamera = bCanUnlockCamera_; }
 
 	UFUNCTION()
-	void unlockSelfCam() { bIsSelfCameraLocked = false; }
+	void restartLevel();
 
-	UFUNCTION()
-	void lockBDCam() { bIsBodyDoubleCameraLocked = true; }
-
-	UFUNCTION()
-	void unlockBDCam() { bIsBodyDoubleCameraLocked = false; }
+public:
+	//Level9 Setup
+	UFUNCTION(BlueprintCallable)
+	void setupMoon(float camAngle);
 
 protected:
 	// APawn interface
@@ -109,6 +135,8 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	/** Returns CameraBoom subobject **/

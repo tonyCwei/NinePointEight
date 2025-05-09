@@ -18,7 +18,6 @@ class NINEPOINTEIGHT_API AGravityController : public APlayerController
 
 
 public:
-	virtual void BeginPlay() override;
 
 	virtual void UpdateRotation(float DeltaTime) override;
 
@@ -46,9 +45,6 @@ protected:
 
 	FRotator preShiftRotation;
 
-	//void disableOwnerInput();
-
-	//void enableOwnerInput();
 
 	
 

@@ -88,12 +88,30 @@ void ANinePointEightCharacter::BeginPlay()
 	
 
 	setGForce(npeGameInsRef->LevelInfos[npeGameInsRef->curLevel].gForce);
-	UE_LOG(LogTemp, Warning, TEXT("Game Instance curLevel: %d"), npeGameInsRef->curLevel);
-	UE_LOG(LogTemp, Warning, TEXT("Gravity: %f"), npeGameInsRef->LevelInfos[npeGameInsRef->curLevel].gForce);
+	//UE_LOG(LogTemp, Warning, TEXT("Game Instance curLevel: %d"), npeGameInsRef->curLevel);
+	//UE_LOG(LogTemp, Warning, TEXT("Gravity: %f"), npeGameInsRef->LevelInfos[npeGameInsRef->curLevel].gForce);
 	//Bug
 	//UE_LOG(LogTemp, Warning, TEXT("Game Instance curLevel: %d"), npeGameInsRef->curLevel);
 	//UE_LOG(LogTemp, Warning, TEXT("Game Save curLevel: %d"), npeGameInsRef->NPESaveGame->curLevel);
 
+}
+
+void ANinePointEightCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	if (controllerIndex == 1) {
+		
+		if (APlayerController* BDController = UGameplayStatics::GetPlayerController(GetWorld(), controllerIndex)) {
+			UGameplayStatics::RemovePlayer(BDController, true);
+		}
+
+		if (UGameViewportClient* Viewport = GetWorld()->GetGameViewport())
+		{
+			Viewport->SetForceDisableSplitscreen(true);
+		}
+	}
+	
 }
 
 
@@ -103,6 +121,45 @@ void ANinePointEightCharacter::BeginPlay()
 // Input
 
 
+
+
+void ANinePointEightCharacter::disableSplitScreen()
+{
+	if (UGameViewportClient* Viewport = GetWorld()->GetGameViewport())
+	{
+		Viewport->SetForceDisableSplitscreen(true);
+	}
+
+	bIsSelfCameraLocked = false;
+	bIsBodyDoubleCameraLocked = false;
+}
+
+void ANinePointEightCharacter::restartLevel()
+{
+	if (npeGameInsRef) npeGameInsRef->RestartLevel();
+}
+
+void ANinePointEightCharacter::setupMoon(float camAngle)
+{
+	bIsSelfCameraLocked = true;
+	bIsBodyDoubleCameraLocked = true;
+	
+	
+
+	if (Controller != nullptr)
+	{
+		AddControllerYawInput(camAngle);
+	}
+
+	if (bodyDouble) {
+		bodyDouble->GetCharacterMovement()->SetGravityDirection(-bodyDouble->GetCharacterMovement()->GetGravityDirection());
+
+		if (bodyDouble->Controller) {
+			bodyDouble->AddControllerYawInput(camAngle);
+		}
+	}
+
+}
 
 void ANinePointEightCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -139,6 +196,10 @@ void ANinePointEightCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
 		EnhancedInputComponent->BindAction(BDCamLockAction, ETriggerEvent::Started, this, &ANinePointEightCharacter::lockBDCam);
 		EnhancedInputComponent->BindAction(BDCamLockAction, ETriggerEvent::Completed, this, &ANinePointEightCharacter::unlockBDCam);
+
+		//restart
+		EnhancedInputComponent->BindAction(RestartAction, ETriggerEvent::Started, this, &ANinePointEightCharacter::restartLevel);
+		
 	}
 	else
 	{
@@ -222,9 +283,25 @@ void ANinePointEightCharacter::Jump()
 
 void ANinePointEightCharacter::zoomTimelineUpdate(float Value)
 {
+	
 	float newArmLength = FMath::Lerp(500, zoomTargetArmLength, Value);
-	CameraBoom->TargetArmLength = newArmLength;
+	if (!bIsSelfCameraLocked) {
+		CameraBoom->TargetArmLength = newArmLength;
+	}
 
+	if (bodyDouble && !bIsBodyDoubleCameraLocked) {
+		bodyDouble->CameraBoom->TargetArmLength = newArmLength;
+	}
+}
+
+float ANinePointEightCharacter::getCamArmLength()
+{
+	return CameraBoom->TargetArmLength;
+}
+
+void ANinePointEightCharacter::setCamArmLength(float newArmLength)
+{
+	CameraBoom->TargetArmLength = newArmLength;
 	if (bodyDouble) {
 		bodyDouble->CameraBoom->TargetArmLength = newArmLength;
 	}
@@ -232,11 +309,13 @@ void ANinePointEightCharacter::zoomTimelineUpdate(float Value)
 
 void ANinePointEightCharacter::zoomIn()
 {
+	
 	zoomTimeline->Reverse();
 }
 
 void ANinePointEightCharacter::zoomOut()
 {
+	
 	zoomTimeline->Play();
 }
 

@@ -3,14 +3,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NinePointEight/NinePointEightCharacter.h"
 
-void AGravityController::BeginPlay()
-{
-	Super::BeginPlay();
-
-	/*FRotator startingRotation(-15,0,0);
-	SetControlRotation(startingRotation);*/
-}
-
 void AGravityController::UpdateRotation(float DeltaTime)
 {
 	FVector GravityDirection = FVector::DownVector;
@@ -55,6 +47,7 @@ void AGravityController::UpdateRotation(float DeltaTime)
 		// Convert the rotation back to world space, and set it as the current control rotation.
 		//SetControlRotation(GetGravityWorldRotation(ViewRotation, GravityDirection));
 		
+		//Camera shift when changing gravity
 		FRotator targetRotation = GetGravityWorldRotation(ViewRotation, GravityDirection);
 		if (bIsCameraShifting) {
 
@@ -82,12 +75,6 @@ void AGravityController::UpdateRotation(float DeltaTime)
 		else {
 			SetControlRotation(targetRotation);
 		}
-		
-		/*UE_LOG(LogTemp, Warning, TEXT("Current Rotation - Pitch: %f, Yaw: %f, Roll: %f"),
-			GetControlRotation().Pitch, GetControlRotation().Yaw, GetControlRotation().Roll);
-
-		UE_LOG(LogTemp, Warning, TEXT("Target Rotation  - Pitch: %f, Yaw: %f, Roll: %f"),
-			targetRotation.Pitch, targetRotation.Yaw, targetRotation.Roll);*/
 		
 
 	}
@@ -130,24 +117,6 @@ ANinePointEightCharacter* AGravityController::getOwnerCharacter()
 	}
 	return nullptr;
 }
-
-//void AGravityController::disableOwnerInput()
-//{
-//	if (ACharacter* PlayerCharacter = Cast<ACharacter>(GetPawn())) {
-//		if (ANinePointEightCharacter* NinePointEightCharacter = Cast<ANinePointEightCharacter>(PlayerCharacter)) {
-//			NinePointEightCharacter->disablePlayerInput();
-//		}
-//	}
-//}
-//
-//void AGravityController::enableOwnerInput()
-//{
-//	if (ACharacter* PlayerCharacter = Cast<ACharacter>(GetPawn())) {
-//		if (ANinePointEightCharacter* NinePointEightCharacter = Cast<ANinePointEightCharacter>(PlayerCharacter)) {
-//			NinePointEightCharacter->enablePlayerInput();
-//		}
-//	}
-//}
 
 void AGravityController::setIsCameraShifting(bool isShifting)
 {
